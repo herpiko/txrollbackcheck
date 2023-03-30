@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	rowsName    = "Rows"
-	stmtName    = "Stmt"
-	closeMethod = "Close"
+	txName         = "Tx"
+	rollbackMethod = "Rollback"
 )
 
 type action uint8
@@ -37,7 +36,7 @@ var (
 func NewAnalyzer() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name: "sqlclosecheck",
-		Doc:  "Checks that sql.Rows and sql.Stmt are closed.",
+		Doc:  "Checks that sql.Tx are closed.",
 		Run:  run,
 		Requires: []*analysis.Analyzer{
 			buildssa.Analyzer,
@@ -76,7 +75,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					refs := (*targetValue.value).Referrers()
 					isClosed := checkClosed(refs, targetTypes)
 					if !isClosed {
-						pass.Reportf((targetValue.instr).Pos(), "Rows/Stmt was not closed")
+						pass.Reportf((targetValue.instr).Pos(), "Tx was missing a defer Rollback()")
 					}
 
 					checkDeferred(pass, refs, targetTypes, false)
@@ -98,15 +97,11 @@ func getTargetTypes(pssa *buildssa.SSA, targetPackages []string) []*types.Pointe
 			return targets
 		}
 
-		rowsType := getTypePointerFromName(pkg, rowsName)
-		if rowsType != nil {
-			targets = append(targets, rowsType)
+		txType := getTypePointerFromName(pkg, txName)
+		if txType != nil {
+			targets = append(targets, txType)
 		}
 
-		stmtType := getTypePointerFromName(pkg, stmtName)
-		if stmtType != nil {
-			targets = append(targets, stmtType)
-		}
 	}
 
 	return targets
@@ -115,7 +110,7 @@ func getTargetTypes(pssa *buildssa.SSA, targetPackages []string) []*types.Pointe
 func getTypePointerFromName(pkg *ssa.Package, name string) *types.Pointer {
 	pkgType := pkg.Type(name)
 	if pkgType == nil {
-		// this package does not use Rows/Stmt
+		// this package does not use Tx
 		return nil
 	}
 
@@ -211,7 +206,7 @@ func getAction(instr ssa.Instruction, targetTypes []*types.Pointer) action {
 		}
 
 		name := instr.Call.Value.Name()
-		if name == closeMethod {
+		if name == rollbackMethod {
 			return actionClosed
 		}
 	case *ssa.Call:
@@ -229,7 +224,7 @@ func getAction(instr ssa.Instruction, targetTypes []*types.Pointer) action {
 		}
 
 		name := instr.Call.Value.Name()
-		if isTarget && name == closeMethod {
+		if isTarget && name == rollbackMethod {
 			return actionClosed
 		}
 
@@ -288,13 +283,13 @@ func checkDeferred(pass *analysis.Pass, instrs *[]ssa.Instruction, targetTypes [
 	for _, instr := range *instrs {
 		switch instr := instr.(type) {
 		case *ssa.Defer:
-			if instr.Call.Value != nil && instr.Call.Value.Name() == closeMethod {
+			if instr.Call.Value != nil && instr.Call.Value.Name() == rollbackMethod {
 				return
 			}
 		case *ssa.Call:
-			if instr.Call.Value != nil && instr.Call.Value.Name() == closeMethod {
+			if instr.Call.Value != nil && instr.Call.Value.Name() == rollbackMethod {
 				if !inDefer {
-					pass.Reportf(instr.Pos(), "Close should use defer")
+					pass.Reportf(instr.Pos(), "Rollback should use defer")
 				}
 
 				return

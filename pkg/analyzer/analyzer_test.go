@@ -11,5 +11,5 @@ func Test(t *testing.T) {
 	testdata := analysistest.TestData()
 
 	checker := analyzer.NewAnalyzer()
-	analysistest.Run(t, testdata, checker, "rows", "stmt")
+	analysistest.Run(t, testdata, checker, "tx")
 }
