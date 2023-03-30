@@ -1,4 +1,4 @@
-module github.com/ryanrolds/sqlclosecheck
+module github.com/herpiko/txrollbackcheck
 
 go 1.19
 

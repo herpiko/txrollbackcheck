@@ -1,6 +1,8 @@
-# sqlclosecheck
+# txrollbackcheck
 
-Linter that checks if SQL rows/statements are closed. Unclosed rows and statements may
+Forked from https://github.com/ryanrolds/sqlclosecheck
+
+Linter that checks if SQL transaction are having `defer Rollback()`. are closed. Missing rollback may
 cause DB connection pool exhaustion.
 
 ## Running
@@ -12,21 +14,13 @@ make install
 
 In your project directory:
 ```
-go vet -vettool=$(which sqlclosecheck) ./...
+go vet -vettool=$(which txrollbackcheck) ./...
 ```
 
 ## CI
 
 ```
-go install github.com/ryanrolds/sqlclosecheck@latest
-go vet -vettool=${GOPATH}/bin/sqlclosecheck ./...
+go install github.com/herpiko/txrollbackcheck@latest
+go vet -vettool=${GOPATH}/bin/txrollbackcheck ./...
 ```
 
-## Roadmap
-
-* ~~Get linter working~~
-* ~~Added some basic test cases~~
-* ~~Require that Close be deferred~~
-* ~~Add sqlx checking~~
-* ~~Test across a bunch of projects~~
-* ~~Introduce linter to [golangci-lint](https://github.com/golangci/golangci-lint).~~

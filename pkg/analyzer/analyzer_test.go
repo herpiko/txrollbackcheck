@@ -3,7 +3,7 @@ package analyzer_test
 import (
 	"testing"
 
-	"github.com/ryanrolds/sqlclosecheck/pkg/analyzer"
+	"github.com/herpiko/txrollbackcheck/pkg/analyzer"
 	"golang.org/x/tools/go/analysis/analysistest"
 )
 
