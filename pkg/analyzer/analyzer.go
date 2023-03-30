@@ -30,12 +30,13 @@ var (
 	sqlPackages = []string{
 		"database/sql",
 		"github.com/jmoiron/sqlx",
+		"github.com/lib/pq",
 	}
 )
 
 func NewAnalyzer() *analysis.Analyzer {
 	return &analysis.Analyzer{
-		Name: "sqlclosecheck",
+		Name: "txrollbackcheck",
 		Doc:  "Checks that sql.Tx are closed.",
 		Run:  run,
 		Requires: []*analysis.Analyzer{
